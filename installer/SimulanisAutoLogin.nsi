@@ -1,6 +1,5 @@
 ; Simulanis Auto Login Installer Script
 !include "MUI2.nsh"
-!include "nsProcess.nsh"
 
 ; General
 Name "Simulanis Auto Login"
@@ -42,63 +41,26 @@ Function AddToStartup
     CreateShortCut "$SMSTARTUP\Simulanis Auto Login.lnk" "$INSTDIR\Simulanis Auto Login.exe"
 FunctionEnd
 
-Function .onInit
-    ; Check if application is running
-    nsProcess::_FindProcess "Simulanis Auto Login.exe"
-    Pop $R0
-    ${If} $R0 == 0
-        MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-            "Simulanis Auto Login is currently running.$\n$\nClick OK to close it and continue with installation, or Cancel to abort installation." \
-            IDCANCEL abort
-            nsProcess::_KillProcess "Simulanis Auto Login.exe"
-            Sleep 2000
-    ${EndIf}
-    Goto continue
-    
-abort:
-    Quit
-    
-continue:
-FunctionEnd
-
 Section "Install"
-    ; Kill process if still running
-    nsProcess::_FindProcess "Simulanis Auto Login.exe"
-    Pop $R0
-    ${If} $R0 == 0
-        nsProcess::_KillProcess "Simulanis Auto Login.exe"
-        Sleep 2000
-    ${EndIf}
-    
+    ; Set output path to the installation directory
     SetOutPath "$INSTDIR"
     
-    ; Copy main executable and dependencies with retry
-    ClearErrors
-    Retry:
-        Delete "$INSTDIR\Simulanis Auto Login.exe"
-        CopyFiles /SILENT "..\v1.0.1\Simulanis Auto Login.exe" "$INSTDIR"
-        ${If} ${Errors}
-            MessageBox MB_RETRYCANCEL|MB_ICONEXCLAMATION \
-                "Error copying files. Please ensure no programs are using these files.$\n$\nClick Retry to try again, or Cancel to stop installation." \
-                IDRETRY Retry
-        ${EndIf}
+    ; Add files to install
+    File "..\v1.0.1\Simulanis Auto Login.exe"
+    File "..\v1.0.1\Start Simulanis Login (GUI).bat"
+    File "..\v1.0.1\Start Simulanis Login.bat"
+    File "..\v1.0.1\README.md"
     
-    ; Create and setup config directory in AppData
+    ; Create config directory and copy config file
     CreateDirectory "${CONFIG_DIR}"
     SetOutPath "${CONFIG_DIR}"
     File "..\v1.0.1\headless_config.json"
     
-    ; Create directories and copy resources
+    ; Copy resource directories
     SetOutPath "$INSTDIR\Icons"
     File /r "..\v1.0.1\Icons\*.*"
     SetOutPath "$INSTDIR\Logos"
     File /r "..\v1.0.1\Logos\*.*"
-    
-    ; Copy README and batch files
-    SetOutPath "$INSTDIR"
-    File "..\v1.0.1\README.md"
-    File "..\v1.0.1\Start Simulanis Login (GUI).bat"
-    File "..\v1.0.1\Start Simulanis Login.bat"
     
     ; Create shortcuts
     CreateDirectory "$SMPROGRAMS\Simulanis Auto Login"
@@ -126,15 +88,7 @@ Section "Install"
 SectionEnd
 
 Section "Uninstall"
-    ; Kill process if running
-    nsProcess::_FindProcess "Simulanis Auto Login.exe"
-    Pop $R0
-    ${If} $R0 == 0
-        nsProcess::_KillProcess "Simulanis Auto Login.exe"
-        Sleep 2000
-    ${EndIf}
-    
-    ; Remove files from installation directory
+    ; Remove application files
     Delete "$INSTDIR\Simulanis Auto Login.exe"
     Delete "$INSTDIR\README.md"
     Delete "$INSTDIR\Start Simulanis Login (GUI).bat"
@@ -146,7 +100,7 @@ Section "Uninstall"
     RMDir /r "$INSTDIR\Logos"
     RMDir "$INSTDIR"
     
-    ; Remove config directory (optional - comment out to preserve settings)
+    ; Remove config directory
     RMDir /r "${CONFIG_DIR}"
     
     ; Remove shortcuts
