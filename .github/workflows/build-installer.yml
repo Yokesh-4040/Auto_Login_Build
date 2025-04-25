@@ -1,12 +1,14 @@
-name: Build Installer
+name: Build Installer and Release
 
 on:
   push:
     branches:
       - main
+    tags:
+      - 'v*.*.*'
 
 permissions:
-  contents: read
+  contents: write
   actions: write
 
 jobs:
@@ -38,9 +40,28 @@ jobs:
         "C:\Program Files (x86)\NSIS\makensis.exe" SimulanisAutoLogin.nsi
         cd ..
         
-    - name: Upload Installer
+    - name: Upload Installer as Artifact
       uses: actions/upload-artifact@v4
       with:
         name: SimulanisAutoLogin_Setup
         path: installer/SimulanisAutoLogin_Setup.exe
-        retention-days: 5  # Keep the installer for 5 days 
+        retention-days: 5
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: installer/SimulanisAutoLogin_Setup.exe
+        name: Release ${{ github.ref_name }}
+        body: |
+          Simulanis Auto Login Release ${{ github.ref_name }}
+          
+          This release includes:
+          - Installer package for Simulanis Auto Login application
+          
+          ### Installation
+          1. Download the SimulanisAutoLogin_Setup.exe
+          2. Run the installer
+          3. Follow the installation wizard instructions
+        draft: false
+        prerelease: false 
