@@ -1,0 +1,29 @@
+name: Build Installer
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'v*/**'  # Triggers when any files in version directories are changed
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Installer
+      shell: cmd
+      run: |
+        cd installer
+        "C:\Program Files (x86)\NSIS\makensis.exe" SimulanisAutoLogin.nsi
+        cd ..
+        
+    - name: Upload Installer
+      uses: actions/upload-artifact@v3
+      with:
+        name: SimulanisAutoLogin_Setup
+        path: installer/SimulanisAutoLogin_Setup.exe
+        retention-days: 5  # Keep the installer for 5 days 
