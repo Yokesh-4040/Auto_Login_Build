@@ -44,6 +44,11 @@ jobs:
         $buildDir = "releases/$version/build"
         $sourceDir = "$version/SimulanisLogin"
         
+        Write-Host "Current directory: $(Get-Location)"
+        Write-Host "Checking source directory: $sourceDir"
+        Write-Host "Available directories:"
+        Get-ChildItem -Directory | ForEach-Object { Write-Host $_.FullName }
+        
         # Create build directory
         mkdir -Force $buildDir
         
@@ -61,12 +66,16 @@ jobs:
             }
             
             # Create zip archive
+            Write-Host "Creating zip archive from: $buildDir/*"
+            Write-Host "Destination: releases/$version/Simulanis_Auto_Login_$version_Build.zip"
             Compress-Archive -Path "$buildDir/*" -DestinationPath "releases/$version/Simulanis_Auto_Login_$version_Build.zip" -Force
             
             # Cleanup build directory
             Remove-Item -Recurse -Force $buildDir
         } else {
             Write-Error "Source directory $sourceDir not found!"
+            Write-Host "Current directory contents:"
+            Get-ChildItem -Recurse | ForEach-Object { Write-Host $_.FullName }
             exit 1
         }
         
