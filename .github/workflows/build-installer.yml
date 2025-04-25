@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'v*/**'  # Triggers when any files in version directories are changed
 
 jobs:
   build:
@@ -14,10 +12,22 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: List Directory Contents
+      run: |
+        Write-Host "Current directory: $PWD"
+        Write-Host "Directory contents:"
+        Get-ChildItem -Recurse | ForEach-Object { Write-Host $_.FullName }
+    
+    - name: Check NSIS Installation
+      shell: cmd
+      run: |
+        dir "C:\Program Files (x86)\NSIS"
+        
     - name: Build Installer
       shell: cmd
       run: |
         cd installer
+        dir
         "C:\Program Files (x86)\NSIS\makensis.exe" SimulanisAutoLogin.nsi
         cd ..
         
