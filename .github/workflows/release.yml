@@ -19,10 +19,9 @@ jobs:
       with:
         python-version: '3.9'
         
-    - name: Install NSIS and 7-Zip
+    - name: Install NSIS
       run: |
         choco install nsis -y
-        choco install 7zip -y
         refreshenv
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
         
@@ -38,17 +37,6 @@ jobs:
         "C:\Program Files (x86)\NSIS\makensis.exe" SimulanisAutoLogin.nsi
         cd ..
         copy "installer\SimulanisAutoLogin_Setup.exe" "releases\${{ github.ref_name }}\SimulanisAutoLogin_Setup.exe"
-        
-    - name: Create Build Package
-      shell: pwsh
-      run: |
-        # Create scripts directory if it doesn't exist
-        New-Item -Path ".github\scripts" -ItemType Directory -Force
-        
-        # Run the build package script
-        $version = "${{ github.ref_name }}"
-        Write-Host "Running build package script for version: $version"
-        .\.github\scripts\create-build-package.ps1 -Version $version
         
     - name: Create Release Notes
       run: |
@@ -73,7 +61,6 @@ jobs:
       with:
         files: |
           releases/${{ github.ref_name }}/SimulanisAutoLogin_Setup.exe
-          releases/${{ github.ref_name }}/Simulanis_Auto_Login_${{ github.ref_name }}_Build.zip
         body_path: releases/${{ github.ref_name }}/RELEASE_NOTES.md
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
