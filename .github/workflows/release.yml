@@ -39,41 +39,83 @@ jobs:
         copy "installer\SimulanisAutoLogin_Setup.exe" "releases\${{ github.ref_name }}\SimulanisAutoLogin_Setup.exe"
         
     - name: Create Build Package
+      shell: pwsh
       run: |
+        # Set variables
         $version = "${{ github.ref_name }}"
-        $buildDir = "releases/$version/build"
-        $sourceDir = "$version/SimulanisLogin"
+        $buildDir = "releases\$version\build"
+        $sourceDir = "$version\SimulanisLogin"
         
         Write-Host "Current directory: $(Get-Location)"
-        Write-Host "Checking source directory: $sourceDir"
+        Write-Host "Source directory: $sourceDir"
+        Write-Host "Build directory: $buildDir"
         Write-Host "Available directories:"
         Get-ChildItem -Directory | ForEach-Object { Write-Host $_.FullName }
         
         # Create build directory
-        mkdir -Force $buildDir
+        New-Item -Path $buildDir -ItemType Directory -Force
         
-        # Copy required files
+        # List contents of version directory
+        Write-Host "Contents of $version directory:"
+        if (Test-Path $version) {
+            Get-ChildItem -Path $version -Recurse | ForEach-Object { Write-Host $_.FullName }
+        } else {
+            Write-Host "$version directory not found"
+        }
+        
+        # Copy files if source exists
         if (Test-Path $sourceDir) {
-            Copy-Item "$sourceDir/SimulanisLogin.exe" "$buildDir/"
-            Copy-Item "$sourceDir/headless_config.json" "$buildDir/"
-            Copy-Item "$sourceDir/Start Simulanis Login (GUI).bat" "$buildDir/"
-            Copy-Item "$sourceDir/Start Simulanis Login.bat" "$buildDir/"
-            if (Test-Path "$sourceDir/Icons") {
-                Copy-Item -Recurse "$sourceDir/Icons" "$buildDir/"
+            Write-Host "Copying files from $sourceDir to $buildDir"
+            
+            # Copy files with error handling
+            $filesToCopy = @(
+                "SimulanisLogin.exe",
+                "headless_config.json",
+                "Start Simulanis Login (GUI).bat",
+                "Start Simulanis Login.bat"
+            )
+            
+            foreach ($file in $filesToCopy) {
+                $sourcePath = Join-Path $sourceDir $file
+                $destPath = Join-Path $buildDir $file
+                if (Test-Path $sourcePath) {
+                    Copy-Item -Path $sourcePath -Destination $destPath -Force
+                    Write-Host "Copied $file successfully"
+                } else {
+                    Write-Warning "Source file not found: $sourcePath"
+                }
             }
-            if (Test-Path "$sourceDir/Logos") {
-                Copy-Item -Recurse "$sourceDir/Logos" "$buildDir/"
+            
+            # Copy directories
+            $dirsToCopy = @("Icons", "Logos")
+            foreach ($dir in $dirsToCopy) {
+                $sourcePath = Join-Path $sourceDir $dir
+                $destPath = Join-Path $buildDir $dir
+                if (Test-Path $sourcePath) {
+                    Copy-Item -Path $sourcePath -Destination $destPath -Recurse -Force
+                    Write-Host "Copied $dir directory successfully"
+                } else {
+                    Write-Warning "Source directory not found: $sourcePath"
+                }
             }
             
             # Create zip archive
-            Write-Host "Creating zip archive from: $buildDir/*"
-            Write-Host "Destination: releases/$version/Simulanis_Auto_Login_$version_Build.zip"
-            Compress-Archive -Path "$buildDir/*" -DestinationPath "releases/$version/Simulanis_Auto_Login_$version_Build.zip" -Force
+            $zipPath = "releases\$version\Simulanis_Auto_Login_$($version)_Build.zip"
+            Write-Host "Creating zip archive at: $zipPath"
+            Compress-Archive -Path "$buildDir\*" -DestinationPath $zipPath -Force
+            
+            # Verify zip creation
+            if (Test-Path $zipPath) {
+                Write-Host "Zip archive created successfully"
+            } else {
+                Write-Error "Failed to create zip archive"
+                exit 1
+            }
             
             # Cleanup build directory
-            Remove-Item -Recurse -Force $buildDir
+            Remove-Item -Path $buildDir -Recurse -Force
         } else {
-            Write-Error "Source directory $sourceDir not found!"
+            Write-Error "Source directory not found: $sourceDir"
             Write-Host "Current directory contents:"
             Get-ChildItem -Recurse | ForEach-Object { Write-Host $_.FullName }
             exit 1
@@ -82,7 +124,7 @@ jobs:
     - name: Create Release Notes
       run: |
         $version = "${{ github.ref_name }}"
-        if (-not (Test-Path "releases/$version/RELEASE_NOTES.md")) {
+        if (-not (Test-Path "releases\$version\RELEASE_NOTES.md")) {
             @"
 # Release $version
 
@@ -94,7 +136,7 @@ jobs:
 1. Download the installer (SimulanisAutoLogin_Setup.exe)
 2. Run the installer and follow the installation wizard
 3. Launch the application from the Start Menu or Desktop shortcut
-"@ | Out-File -FilePath "releases/$version/RELEASE_NOTES.md" -Encoding UTF8
+"@ | Out-File -FilePath "releases\$version\RELEASE_NOTES.md" -Encoding UTF8
         }
         
     - name: Create Release
