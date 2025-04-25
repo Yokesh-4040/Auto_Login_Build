@@ -28,7 +28,7 @@ jobs:
     - name: Create Release Directory
       run: |
         $version = "${{ github.ref_name }}"
-        mkdir -Force "releases/$version"
+        New-Item -Path "releases\$version" -ItemType Directory -Force
         
     - name: Build Installer
       shell: cmd
@@ -49,55 +49,44 @@ jobs:
         Write-Host "Current directory: $(Get-Location)"
         Write-Host "Source directory: $sourceDir"
         Write-Host "Build directory: $buildDir"
-        Write-Host "Available directories:"
-        Get-ChildItem -Directory | ForEach-Object { Write-Host $_.FullName }
+        
+        # List all directories and files
+        Write-Host "Available directories and files:"
+        Get-ChildItem -Recurse | ForEach-Object { Write-Host $_.FullName }
         
         # Create build directory
         New-Item -Path $buildDir -ItemType Directory -Force
-        
-        # List contents of version directory
-        Write-Host "Contents of $version directory:"
-        if (Test-Path $version) {
-            Get-ChildItem -Path $version -Recurse | ForEach-Object { Write-Host $_.FullName }
-        } else {
-            Write-Host "$version directory not found"
-        }
         
         # Copy files if source exists
         if (Test-Path $sourceDir) {
             Write-Host "Copying files from $sourceDir to $buildDir"
             
-            # Copy files with error handling
-            $filesToCopy = @(
-                "SimulanisLogin.exe",
-                "headless_config.json",
-                "Start Simulanis Login (GUI).bat",
-                "Start Simulanis Login.bat"
-            )
-            
-            foreach ($file in $filesToCopy) {
-                $sourcePath = Join-Path $sourceDir $file
-                $destPath = Join-Path $buildDir $file
-                if (Test-Path $sourcePath) {
-                    Copy-Item -Path $sourcePath -Destination $destPath -Force
-                    Write-Host "Copied $file successfully"
-                } else {
-                    Write-Warning "Source file not found: $sourcePath"
-                }
-            }
+            # Copy main executable and config
+            Copy-Item -Path "$sourceDir\SimulanisLogin.exe" -Destination $buildDir -Force
+            Copy-Item -Path "$sourceDir\config.json" -Destination "$buildDir\headless_config.json" -Force
             
             # Copy directories
-            $dirsToCopy = @("Icons", "Logos")
+            $dirsToCopy = @("Icons", "Logos", "_internal")
             foreach ($dir in $dirsToCopy) {
                 $sourcePath = Join-Path $sourceDir $dir
-                $destPath = Join-Path $buildDir $dir
                 if (Test-Path $sourcePath) {
-                    Copy-Item -Path $sourcePath -Destination $destPath -Recurse -Force
+                    Copy-Item -Path $sourcePath -Destination $buildDir -Recurse -Force
                     Write-Host "Copied $dir directory successfully"
                 } else {
                     Write-Warning "Source directory not found: $sourcePath"
                 }
             }
+            
+            # Create batch files
+            @"
+@echo off
+start "" "%~dp0SimulanisLogin.exe"
+"@ | Out-File -FilePath "$buildDir\Start Simulanis Login.bat" -Encoding ASCII -Force
+
+            @"
+@echo off
+start "" "%~dp0SimulanisLogin.exe" --gui
+"@ | Out-File -FilePath "$buildDir\Start Simulanis Login (GUI).bat" -Encoding ASCII -Force
             
             # Create zip archive
             $zipPath = "releases\$version\Simulanis_Auto_Login_$($version)_Build.zip"
@@ -107,6 +96,7 @@ jobs:
             # Verify zip creation
             if (Test-Path $zipPath) {
                 Write-Host "Zip archive created successfully"
+                Get-Item $zipPath | Select-Object FullName, Length
             } else {
                 Write-Error "Failed to create zip archive"
                 exit 1
