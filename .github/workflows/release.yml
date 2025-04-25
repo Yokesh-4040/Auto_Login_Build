@@ -1,0 +1,55 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on tags like v1.0.1
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install NSIS
+      run: |
+        choco install nsis -y
+        
+    - name: Create Release Directory
+      run: |
+        mkdir -Force "releases/${{ github.ref_name }}"
+        
+    - name: Build Installer
+      run: |
+        cd installer
+        "C:\Program Files (x86)\NSIS\makensis.exe" SimulanisAutoLogin.nsi
+        cd ..
+        Copy-Item "installer/SimulanisAutoLogin_Setup.exe" "releases/${{ github.ref_name }}/"
+        
+    - name: Create Build Package
+      run: |
+        mkdir -Force "releases/${{ github.ref_name }}/build"
+        Copy-Item "v1.0.1/Simulanis Auto Login.exe" "releases/${{ github.ref_name }}/build/"
+        Copy-Item "v1.0.1/headless_config.json" "releases/${{ github.ref_name }}/build/"
+        Copy-Item "v1.0.1/Start Simulanis Login (GUI).bat" "releases/${{ github.ref_name }}/build/"
+        Copy-Item "v1.0.1/Start Simulanis Login.bat" "releases/${{ github.ref_name }}/build/"
+        Copy-Item -Recurse "v1.0.1/Icons" "releases/${{ github.ref_name }}/build/"
+        Copy-Item -Recurse "v1.0.1/Logos" "releases/${{ github.ref_name }}/build/"
+        Compress-Archive -Path "releases/${{ github.ref_name }}/build/*" -DestinationPath "releases/${{ github.ref_name }}/Simulanis_Auto_Login_${{ github.ref_name }}_Build.zip" -Force
+        Remove-Item -Recurse -Force "releases/${{ github.ref_name }}/build"
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          releases/${{ github.ref_name }}/SimulanisAutoLogin_Setup.exe
+          releases/${{ github.ref_name }}/Simulanis_Auto_Login_${{ github.ref_name }}_Build.zip
+        body_path: releases/${{ github.ref_name }}/RELEASE_NOTES.md
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
