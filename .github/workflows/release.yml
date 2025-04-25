@@ -11,6 +11,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
     
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -25,7 +27,8 @@ jobs:
         
     - name: Create Release Directory
       run: |
-        mkdir -Force "releases/${{ github.ref_name }}"
+        $version = "${{ github.ref_name }}"
+        mkdir -Force "releases/$version"
         
     - name: Build Installer
       shell: cmd
@@ -37,15 +40,53 @@ jobs:
         
     - name: Create Build Package
       run: |
-        mkdir -Force "releases/${{ github.ref_name }}/build"
-        Copy-Item "v1.0.2/SimulanisLogin/SimulanisLogin.exe" "releases/${{ github.ref_name }}/build/"
-        Copy-Item "v1.0.2/SimulanisLogin/headless_config.json" "releases/${{ github.ref_name }}/build/"
-        Copy-Item "v1.0.2/SimulanisLogin/Start Simulanis Login (GUI).bat" "releases/${{ github.ref_name }}/build/"
-        Copy-Item "v1.0.2/SimulanisLogin/Start Simulanis Login.bat" "releases/${{ github.ref_name }}/build/"
-        Copy-Item -Recurse "v1.0.2/SimulanisLogin/Icons" "releases/${{ github.ref_name }}/build/"
-        Copy-Item -Recurse "v1.0.2/SimulanisLogin/Logos" "releases/${{ github.ref_name }}/build/"
-        Compress-Archive -Path "releases/${{ github.ref_name }}/build/*" -DestinationPath "releases/${{ github.ref_name }}/Simulanis_Auto_Login_${{ github.ref_name }}_Build.zip" -Force
-        Remove-Item -Recurse -Force "releases/${{ github.ref_name }}/build"
+        $version = "${{ github.ref_name }}"
+        $buildDir = "releases/$version/build"
+        $sourceDir = "$version/SimulanisLogin"
+        
+        # Create build directory
+        mkdir -Force $buildDir
+        
+        # Copy required files
+        if (Test-Path $sourceDir) {
+            Copy-Item "$sourceDir/SimulanisLogin.exe" "$buildDir/"
+            Copy-Item "$sourceDir/headless_config.json" "$buildDir/"
+            Copy-Item "$sourceDir/Start Simulanis Login (GUI).bat" "$buildDir/"
+            Copy-Item "$sourceDir/Start Simulanis Login.bat" "$buildDir/"
+            if (Test-Path "$sourceDir/Icons") {
+                Copy-Item -Recurse "$sourceDir/Icons" "$buildDir/"
+            }
+            if (Test-Path "$sourceDir/Logos") {
+                Copy-Item -Recurse "$sourceDir/Logos" "$buildDir/"
+            }
+            
+            # Create zip archive
+            Compress-Archive -Path "$buildDir/*" -DestinationPath "releases/$version/Simulanis_Auto_Login_$version_Build.zip" -Force
+            
+            # Cleanup build directory
+            Remove-Item -Recurse -Force $buildDir
+        } else {
+            Write-Error "Source directory $sourceDir not found!"
+            exit 1
+        }
+        
+    - name: Create Release Notes
+      run: |
+        $version = "${{ github.ref_name }}"
+        if (-not (Test-Path "releases/$version/RELEASE_NOTES.md")) {
+            @"
+# Release $version
+
+## What's New
+- Updated application with latest features and improvements
+- Bug fixes and performance enhancements
+
+## Installation
+1. Download the installer (SimulanisAutoLogin_Setup.exe)
+2. Run the installer and follow the installation wizard
+3. Launch the application from the Start Menu or Desktop shortcut
+"@ | Out-File -FilePath "releases/$version/RELEASE_NOTES.md" -Encoding UTF8
+        }
         
     - name: Create Release
       uses: softprops/action-gh-release@v1
