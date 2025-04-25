@@ -14,17 +14,6 @@ jobs:
       with:
         fetch-depth: 0
     
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-        
-    - name: Install NSIS
-      run: |
-        choco install nsis -y
-        refreshenv
-        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-        
     - name: Create Release Directory
       run: |
         $version = "${{ github.ref_name }}"
