@@ -20,27 +20,30 @@ jobs:
     - name: Install NSIS
       run: |
         choco install nsis -y
+        refreshenv
+        $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
         
     - name: Create Release Directory
       run: |
         mkdir -Force "releases/${{ github.ref_name }}"
         
     - name: Build Installer
+      shell: cmd
       run: |
         cd installer
         "C:\Program Files (x86)\NSIS\makensis.exe" SimulanisAutoLogin.nsi
         cd ..
-        Copy-Item "installer/SimulanisAutoLogin_Setup.exe" "releases/${{ github.ref_name }}/"
+        copy "installer\SimulanisAutoLogin_Setup.exe" "releases\${{ github.ref_name }}\SimulanisAutoLogin_Setup.exe"
         
     - name: Create Build Package
       run: |
         mkdir -Force "releases/${{ github.ref_name }}/build"
-        Copy-Item "v1.0.1/Simulanis Auto Login.exe" "releases/${{ github.ref_name }}/build/"
-        Copy-Item "v1.0.1/headless_config.json" "releases/${{ github.ref_name }}/build/"
-        Copy-Item "v1.0.1/Start Simulanis Login (GUI).bat" "releases/${{ github.ref_name }}/build/"
-        Copy-Item "v1.0.1/Start Simulanis Login.bat" "releases/${{ github.ref_name }}/build/"
-        Copy-Item -Recurse "v1.0.1/Icons" "releases/${{ github.ref_name }}/build/"
-        Copy-Item -Recurse "v1.0.1/Logos" "releases/${{ github.ref_name }}/build/"
+        Copy-Item "v1.0.2/SimulanisLogin/SimulanisLogin.exe" "releases/${{ github.ref_name }}/build/"
+        Copy-Item "v1.0.2/SimulanisLogin/headless_config.json" "releases/${{ github.ref_name }}/build/"
+        Copy-Item "v1.0.2/SimulanisLogin/Start Simulanis Login (GUI).bat" "releases/${{ github.ref_name }}/build/"
+        Copy-Item "v1.0.2/SimulanisLogin/Start Simulanis Login.bat" "releases/${{ github.ref_name }}/build/"
+        Copy-Item -Recurse "v1.0.2/SimulanisLogin/Icons" "releases/${{ github.ref_name }}/build/"
+        Copy-Item -Recurse "v1.0.2/SimulanisLogin/Logos" "releases/${{ github.ref_name }}/build/"
         Compress-Archive -Path "releases/${{ github.ref_name }}/build/*" -DestinationPath "releases/${{ github.ref_name }}/Simulanis_Auto_Login_${{ github.ref_name }}_Build.zip" -Force
         Remove-Item -Recurse -Force "releases/${{ github.ref_name }}/build"
         
