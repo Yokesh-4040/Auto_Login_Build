@@ -1,5 +1,6 @@
 ; Simulanis Auto Login Installer Script
 !include "MUI2.nsh"
+!include "FileFunc.nsh"
 
 ; General
 Name "Simulanis Auto Login"
@@ -14,7 +15,7 @@ RequestExecutionLevel admin
 !define MUI_ABORTWARNING
 !define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
 !define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
-!define MUI_FINISHPAGE_RUN "$INSTDIR\Simulanis Auto Login.exe"
+!define MUI_FINISHPAGE_RUN "$INSTDIR\SimulanisLogin.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "Launch Simulanis Auto Login"
 !define MUI_FINISHPAGE_SHOWREADME ""
 !define MUI_FINISHPAGE_SHOWREADME_TEXT "Add to Windows Startup"
@@ -38,35 +39,31 @@ RequestExecutionLevel admin
 
 ; Function to add to startup
 Function AddToStartup
-    CreateShortCut "$SMSTARTUP\Simulanis Auto Login.lnk" "$INSTDIR\Simulanis Auto Login.exe"
+    CreateShortCut "$SMSTARTUP\Simulanis Auto Login.lnk" "$INSTDIR\SimulanisLogin.exe"
 FunctionEnd
 
 Section "Install"
-    ; Set output path to the installation directory
     SetOutPath "$INSTDIR"
     
     ; Add files to install
-    File "..\v1.0.1\Simulanis Auto Login.exe"
-    File "..\v1.0.1\Start Simulanis Login (GUI).bat"
-    File "..\v1.0.1\Start Simulanis Login.bat"
-    File "..\v1.0.1\README.md"
-    
-    ; Create config directory and copy config file
-    CreateDirectory "${CONFIG_DIR}"
-    SetOutPath "${CONFIG_DIR}"
-    File "..\v1.0.1\headless_config.json"
+    File "..\v1.0.2\SimulanisLogin\SimulanisLogin.exe"
+    File "..\v1.0.2\SimulanisLogin\config.json"
     
     ; Copy resource directories
     SetOutPath "$INSTDIR\Icons"
-    File /r "..\v1.0.1\Icons\*.*"
+    File /r "..\v1.0.2\SimulanisLogin\Icons\*.*"
     SetOutPath "$INSTDIR\Logos"
-    File /r "..\v1.0.1\Logos\*.*"
+    File /r "..\v1.0.2\SimulanisLogin\Logos\*.*"
+    
+    ; Copy _internal directory
+    SetOutPath "$INSTDIR\_internal"
+    File /r "..\v1.0.2\SimulanisLogin\_internal\*.*"
     
     ; Create shortcuts
     CreateDirectory "$SMPROGRAMS\Simulanis Auto Login"
-    CreateShortcut "$SMPROGRAMS\Simulanis Auto Login\Simulanis Auto Login.lnk" "$INSTDIR\Simulanis Auto Login.exe"
+    CreateShortcut "$SMPROGRAMS\Simulanis Auto Login\Simulanis Auto Login.lnk" "$INSTDIR\SimulanisLogin.exe"
     CreateShortcut "$SMPROGRAMS\Simulanis Auto Login\Uninstall.lnk" "$INSTDIR\Uninstall.exe"
-    CreateShortcut "$DESKTOP\Simulanis Auto Login.lnk" "$INSTDIR\Simulanis Auto Login.exe"
+    CreateShortcut "$DESKTOP\Simulanis Auto Login.lnk" "$INSTDIR\SimulanisLogin.exe"
     
     ; Write uninstaller
     WriteUninstaller "$INSTDIR\Uninstall.exe"
@@ -77,31 +74,31 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
                      "UninstallString" "$\"$INSTDIR\Uninstall.exe$\""
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
-                     "DisplayIcon" "$INSTDIR\Simulanis Auto Login.exe"
+                     "DisplayIcon" "$INSTDIR\SimulanisLogin.exe"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
                      "Publisher" "Simulanis Solutions Pvt. Ltd."
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
-                     "DisplayVersion" "1.0.1"
+                     "DisplayVersion" "1.0.2"
     
     ; Write config directory location to registry
     WriteRegStr HKCU "Software\Simulanis Auto Login" "ConfigDir" "${CONFIG_DIR}"
+    
+    ; Add Zone.Identifier to mark as safe
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Policies\Associations" \
+                     "LowRiskFileTypes" ".exe;.bat;.cmd;.msi;.zip;.rar;.7z"
 SectionEnd
 
 Section "Uninstall"
-    ; Remove application files
-    Delete "$INSTDIR\Simulanis Auto Login.exe"
-    Delete "$INSTDIR\README.md"
-    Delete "$INSTDIR\Start Simulanis Login (GUI).bat"
-    Delete "$INSTDIR\Start Simulanis Login.bat"
+    ; Remove files from installation directory
+    Delete "$INSTDIR\SimulanisLogin.exe"
+    Delete "$INSTDIR\config.json"
     Delete "$INSTDIR\Uninstall.exe"
     
     ; Remove resource directories
     RMDir /r "$INSTDIR\Icons"
     RMDir /r "$INSTDIR\Logos"
+    RMDir /r "$INSTDIR\_internal"
     RMDir "$INSTDIR"
-    
-    ; Remove config directory
-    RMDir /r "${CONFIG_DIR}"
     
     ; Remove shortcuts
     Delete "$SMPROGRAMS\Simulanis Auto Login\Simulanis Auto Login.lnk"

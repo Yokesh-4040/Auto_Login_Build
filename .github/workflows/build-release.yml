@@ -1,0 +1,37 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup NSIS
+      run: |
+        choco install nsis
+        
+    - name: Build Installer
+      run: |
+        cd installer
+        makensis SimulanisAutoLogin.nsi
+        
+    - name: Create Build Zip
+      run: |
+        Compress-Archive -Path "v${{ github.ref_name }}" -DestinationPath "SimulanisAutoLogin_v${{ github.ref_name }}.zip" -Force
+        
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          installer/SimulanisAutoLogin_Setup.exe
+          SimulanisAutoLogin_v${{ github.ref_name }}.zip
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
