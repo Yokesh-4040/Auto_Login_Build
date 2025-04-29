@@ -46,18 +46,14 @@ Section "Install"
     SetOutPath "$INSTDIR"
     
     ; Add files to install
-    File "..\v1.0.3\SimulanisLogin.exe"
-    File "..\v1.0.3\config.json"
+    File "..\v1.1.0\SimulanisLogin.exe"
+    File "..\v1.1.0\config.json"
     
     ; Copy resource directories
     SetOutPath "$INSTDIR\Icons"
-    File /r "..\v1.0.3\Icons\*.*"
+    File /r "..\v1.1.0\Icons\*.*"
     SetOutPath "$INSTDIR\Logos"
-    File /r "..\v1.0.3\Logos\*.*"
-    
-    ; Copy _internal directory
-    SetOutPath "$INSTDIR\_internal"
-    File /r "..\v1.0.3\build\*.*"
+    File /r "..\v1.1.0\Logos\*.*"
     
     ; Create shortcuts
     CreateDirectory "$SMPROGRAMS\Simulanis Auto Login"
@@ -78,7 +74,7 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
                      "Publisher" "Simulanis Solutions Pvt. Ltd."
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
-                     "DisplayVersion" "1.0.3"
+                     "DisplayVersion" "1.1.0"
     
     ; Write config directory location to registry
     WriteRegStr HKCU "Software\Simulanis Auto Login" "ConfigDir" "${CONFIG_DIR}"
@@ -97,7 +93,6 @@ Section "Uninstall"
     ; Remove resource directories
     RMDir /r "$INSTDIR\Icons"
     RMDir /r "$INSTDIR\Logos"
-    RMDir /r "$INSTDIR\_internal"
     RMDir "$INSTDIR"
     
     ; Remove shortcuts
