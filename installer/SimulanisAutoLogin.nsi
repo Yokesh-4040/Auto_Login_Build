@@ -46,18 +46,18 @@ Section "Install"
     SetOutPath "$INSTDIR"
     
     ; Add files to install
-    File "..\v1.0.2\SimulanisLogin\SimulanisLogin.exe"
-    File "..\v1.0.2\SimulanisLogin\config.json"
+    File "..\v1.0.3\SimulanisLogin.exe"
+    File "..\v1.0.3\config.json"
     
     ; Copy resource directories
     SetOutPath "$INSTDIR\Icons"
-    File /r "..\v1.0.2\SimulanisLogin\Icons\*.*"
+    File /r "..\v1.0.3\Icons\*.*"
     SetOutPath "$INSTDIR\Logos"
-    File /r "..\v1.0.2\SimulanisLogin\Logos\*.*"
+    File /r "..\v1.0.3\Logos\*.*"
     
     ; Copy _internal directory
     SetOutPath "$INSTDIR\_internal"
-    File /r "..\v1.0.2\SimulanisLogin\_internal\*.*"
+    File /r "..\v1.0.3\build\*.*"
     
     ; Create shortcuts
     CreateDirectory "$SMPROGRAMS\Simulanis Auto Login"
@@ -78,7 +78,7 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
                      "Publisher" "Simulanis Solutions Pvt. Ltd."
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
-                     "DisplayVersion" "1.0.2"
+                     "DisplayVersion" "1.0.3"
     
     ; Write config directory location to registry
     WriteRegStr HKCU "Software\Simulanis Auto Login" "ConfigDir" "${CONFIG_DIR}"
