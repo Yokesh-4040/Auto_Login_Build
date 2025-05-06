@@ -49,12 +49,15 @@ FunctionEnd
 Section "Install"
     SetOutPath "$INSTDIR"
     
+
     ; Add files to install 
     File "${SRCDIR}\v1.2.1\SimulanisLogin.exe"
     File "${SRCDIR}\v1.2.1\config.json"
+
     
     ; Create Icons directory and copy icons
     SetOutPath "$INSTDIR\Icons"
+
     
     ; Use explicit file list for Icons
     File "${SRCDIR}\v1.2.1\Icons\close.png"
@@ -75,6 +78,7 @@ Section "Install"
     
     ; Return to installation directory
     SetOutPath "$INSTDIR"
+
     
     ; Create shortcuts
     CreateDirectory "$SMPROGRAMS\Simulanis Auto Login"
@@ -95,7 +99,9 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
                      "Publisher" "Simulanis Solutions Pvt. Ltd."
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
+=
                      "DisplayVersion" "1.2.1"
+
     
     ; Write config directory location to registry
     WriteRegStr HKCU "Software\Simulanis Auto Login" "ConfigDir" "${CONFIG_DIR}"
