@@ -27,6 +27,27 @@ jobs:
         Write-Host "Directory contents:"
         Get-ChildItem -Recurse | ForEach-Object { Write-Host $_.FullName }
     
+    - name: Verify Required Directories
+      shell: pwsh
+      run: |
+        # Check if v1.2.1/Icons and v1.2.1/Logos directories exist
+        if (-not (Test-Path "v1.2.1/Icons")) {
+          Write-Host "::error::v1.2.1/Icons directory not found. Please make sure it exists in the repository."
+          exit 1
+        }
+        
+        if (-not (Test-Path "v1.2.1/Logos")) {
+          Write-Host "::error::v1.2.1/Logos directory not found. Please make sure it exists in the repository."
+          exit 1
+        }
+        
+        Write-Host "Required directories for icons and logos found."
+        Write-Host "Icons directory contents:"
+        Get-ChildItem -Path "v1.2.1/Icons" | ForEach-Object { Write-Host "  $_" }
+        
+        Write-Host "Logos directory contents:"
+        Get-ChildItem -Path "v1.2.1/Logos" | ForEach-Object { Write-Host "  $_" }
+    
     - name: Check NSIS Installation
       shell: cmd
       run: |

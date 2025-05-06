@@ -1,6 +1,10 @@
 ; Simulanis Auto Login Installer Script
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
+!include "LogicLib.nsh"
+
+; Define source directory (the root of the project)
+!define SRCDIR ".."  ; Changed from absolute path to relative
 
 ; General
 Name "Simulanis Auto Login"
@@ -45,15 +49,56 @@ FunctionEnd
 Section "Install"
     SetOutPath "$INSTDIR"
     
-    ; Add files to install
-    File "..\v1.1.0\SimulanisLogin.exe"
-    File "..\v1.1.0\config.json"
+    ; Add files to install 
+    File "${SRCDIR}\v1.2.1\SimulanisLogin.exe"
+    File "${SRCDIR}\v1.2.1\config.json"
     
-    ; Copy resource directories
+    ; Create resource directories to ensure they exist
+    CreateDirectory "$INSTDIR\Icons"
+    CreateDirectory "$INSTDIR\Logos"
+    
+    ; Copy resource directories - try with multiple paths to be more robust
     SetOutPath "$INSTDIR\Icons"
-    File /r "..\v1.1.0\Icons\*.*"
+    
+    ; Try to copy from the original directory
+    ClearErrors
+    File /nonfatal "${SRCDIR}\v1.2.1\Icons\close.png"
+    File /nonfatal "${SRCDIR}\v1.2.1\Icons\connect.png"
+    File /nonfatal "${SRCDIR}\v1.2.1\Icons\eye.png"
+    File /nonfatal "${SRCDIR}\v1.2.1\Icons\eye_off.png"
+    File /nonfatal "${SRCDIR}\v1.2.1\Icons\profile.png"
+    File /nonfatal "${SRCDIR}\v1.2.1\Icons\success.png"
+    
+    ; If there were errors, try the local directory
+    ${If} ${Errors}
+        DetailPrint "Trying local Icons directory..."
+        ClearErrors
+        File /nonfatal "Icons\close.png"
+        File /nonfatal "Icons\connect.png"
+        File /nonfatal "Icons\eye.png"
+        File /nonfatal "Icons\eye_off.png"
+        File /nonfatal "Icons\profile.png"
+        File /nonfatal "Icons\success.png"
+    ${EndIf}
+    
     SetOutPath "$INSTDIR\Logos"
-    File /r "..\v1.1.0\Logos\*.*"
+    
+    ; Try to copy from the original directory
+    ClearErrors
+    File /nonfatal "${SRCDIR}\v1.2.1\Logos\Logo.png"
+    File /nonfatal "${SRCDIR}\v1.2.1\Logos\Logo_mini.png"
+    File /nonfatal "${SRCDIR}\v1.2.1\Logos\Icon-blue-transparent.png"
+    File /nonfatal "${SRCDIR}\v1.2.1\Logos\Icon-white-transparent.png"
+    
+    ; If there were errors, try the local directory
+    ${If} ${Errors}
+        DetailPrint "Trying local Logos directory..."
+        ClearErrors
+        File /nonfatal "Logos\Logo.png"
+        File /nonfatal "Logos\Logo_mini.png"
+        File /nonfatal "Logos\Icon-blue-transparent.png" 
+        File /nonfatal "Logos\Icon-white-transparent.png"
+    ${EndIf}
     
     ; Create shortcuts
     CreateDirectory "$SMPROGRAMS\Simulanis Auto Login"
@@ -74,7 +119,7 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
                      "Publisher" "Simulanis Solutions Pvt. Ltd."
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
-                     "DisplayVersion" "1.1.0"
+                     "DisplayVersion" "1.2.1"
     
     ; Write config directory location to registry
     WriteRegStr HKCU "Software\Simulanis Auto Login" "ConfigDir" "${CONFIG_DIR}"
