@@ -1,6 +1,10 @@
 ; Simulanis Auto Login Installer Script
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
+!include "LogicLib.nsh"
+
+; Define source directory (the root of the project)
+!define SRCDIR ".."
 
 ; General
 Name "Simulanis Auto Login"
@@ -45,15 +49,36 @@ FunctionEnd
 Section "Install"
     SetOutPath "$INSTDIR"
     
-    ; Add files to install
-    File "..\v1.1.0\SimulanisLogin.exe"
-    File "..\v1.1.0\config.json"
+
+    ; Add files to install 
+    File "${SRCDIR}\v1.2.1\SimulanisLogin.exe"
+    File "${SRCDIR}\v1.2.1\config.json"
+
     
-    ; Copy resource directories
+    ; Create Icons directory and copy icons
     SetOutPath "$INSTDIR\Icons"
-    File /r "..\v1.1.0\Icons\*.*"
+
+    
+    ; Use explicit file list for Icons
+    File "${SRCDIR}\v1.2.1\Icons\close.png"
+    File "${SRCDIR}\v1.2.1\Icons\connect.png"
+    File "${SRCDIR}\v1.2.1\Icons\eye.png"
+    File "${SRCDIR}\v1.2.1\Icons\eye_off.png"
+    File "${SRCDIR}\v1.2.1\Icons\profile.png"
+    File "${SRCDIR}\v1.2.1\Icons\success.png"
+    
+    ; Create Logos directory and copy logos
     SetOutPath "$INSTDIR\Logos"
-    File /r "..\v1.1.0\Logos\*.*"
+    
+    ; Use explicit file list for Logos
+    File "${SRCDIR}\v1.2.1\Logos\Logo.png"
+    File "${SRCDIR}\v1.2.1\Logos\Logo_mini.png"
+    File "${SRCDIR}\v1.2.1\Logos\Icon-blue-transparent.png"
+    File "${SRCDIR}\v1.2.1\Logos\Icon-white-transparent.png"
+    
+    ; Return to installation directory
+    SetOutPath "$INSTDIR"
+
     
     ; Create shortcuts
     CreateDirectory "$SMPROGRAMS\Simulanis Auto Login"
@@ -74,7 +99,9 @@ Section "Install"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
                      "Publisher" "Simulanis Solutions Pvt. Ltd."
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Simulanis Auto Login" \
-                     "DisplayVersion" "1.1.0"
+=
+                     "DisplayVersion" "1.2.1"
+
     
     ; Write config directory location to registry
     WriteRegStr HKCU "Software\Simulanis Auto Login" "ConfigDir" "${CONFIG_DIR}"
